@@ -20,7 +20,7 @@ export default function EditProfile() {
         setBio(data.bio || '');
         setAvatarUrl(data.avatarUrl || '');
       })
-      .catch(() => setError('Erro ao carregar perfil.'))
+      .catch(err => setError(err.message || 'Erro ao carregar perfil.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -31,23 +31,32 @@ export default function EditProfile() {
       return;
     }
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para editar o perfil.');
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
     try {
-      await api('/users/me', {
+      const updatedUser = await api('/users/me', {
         method: 'PUT',
-        body: JSON.stringify({ name, bio, avatarUrl })
+        body: JSON.stringify({ name, bio, avatarUrl }),
       });
+
       alert('Perfil atualizado com sucesso!');
       router.push('/profile');
-    } catch {
-      alert('Erro ao atualizar perfil.');
+    } catch (err) {
+      setError(err.message || 'Erro ao atualizar perfil.');
     } finally {
       setLoading(false);
     }
   }
 
-  if (error) return <p>{error}</p>;
-  if (loading && !user) return <p>Carregando seu perfil...</p>;
+  if (loading && !user) return <p style={{ textAlign: 'center' }}>Carregando seu perfil...</p>;
+  if (error) return <p style={{ textAlign: 'center', color: 'red' }}>{error}</p>;
 
   return (
     <div
@@ -57,7 +66,7 @@ export default function EditProfile() {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#e6dfd3',
-        fontFamily: 'Arial, sans-serif'
+        fontFamily: 'Arial, sans-serif',
       }}
     >
       <div
@@ -67,7 +76,7 @@ export default function EditProfile() {
           backgroundColor: '#f4eee1',
           borderRadius: 10,
           textAlign: 'center',
-          boxShadow: '2px 2px 10px rgba(0,0,0,0.1)'
+          boxShadow: '2px 2px 10px rgba(0,0,0,0.1)',
         }}
       >
         <h1 style={{ color: '#5b3a29', marginBottom: 20 }}>Editar Perfil</h1>
@@ -115,7 +124,7 @@ export default function EditProfile() {
               border: 'none',
               borderRadius: 5,
               cursor: 'pointer',
-              marginTop: 10
+              marginTop: 10,
             }}
           >
             {loading ? 'Atualizando...' : 'Salvar'}
