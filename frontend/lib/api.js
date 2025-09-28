@@ -5,20 +5,28 @@ export async function api(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
+  let res, data = null;
 
-  let data = null;
-  try{
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...options, headers });
 
-    data = await res.json();
-  }catch {
-    data = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+
+    console.log('API Request:', path, options);
+    console.log('Status:', res.status, 'OK:', res.ok);
+    console.log('Response:', data);
+
+    if (!res.ok) {
+      throw new Error(data?.error || `Erro na API: ${res.status}`);
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Erro na requisição API:', err);
+    throw new Error(err.message || 'Erro desconhecido na API');
   }
-  
-  if (!res.ok){
-    throw new Error(data?.error || `Erro na API: ${res.status}`);
-  }
-
-  return data;
-  }
-
+}
