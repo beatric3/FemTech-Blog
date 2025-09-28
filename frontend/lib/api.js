@@ -6,7 +6,19 @@ export async function api(path, options = {}) {
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Erro na API');
+
+  let data = null;
+  try{
+
+    data = await res.json();
+  }catch {
+    data = null;
+  }
+  
+  if (!res.ok){
+    throw new Error(data?.error || `Erro na API: ${res.status}`);
+  }
+
   return data;
-}
+  }
+
